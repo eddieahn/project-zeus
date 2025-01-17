@@ -276,7 +276,9 @@ if st.session_state.user_input and st.session_state.step==1:
         # Precheck
         precheck_result = precheck(st.session_state.user_input)
         if precheck_result == "Irrelevant":
-            response = "The input provided is not a customer request. Please provide a relevant customer request for classification."
+            st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
+            with st.chat_message("assistant", avatar='Zeus.png'):
+                st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
         elif precheck_result == "Enablement Bootcamp":
             st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
             with st.chat_message("assistant", avatar='Zeus.png'):
@@ -295,7 +297,7 @@ if st.session_state.step==2:
         with st.chat_message("user"):
             st.markdown(f"Launch Advisory: {launch_advisory}")
         if launch_advisory == "No":
-            response = "Unfortunately that customer request can only be submitted alongside Launch Advisory only."
+            response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
             handle_response(response)
             st.session_state.step = 1
         else:
