@@ -18,7 +18,8 @@ AZURE_OPENAI_EMBEDDING_MODEL = os.environ.get("AZURE_OPENAI_EMBEDDING_MODEL") or
 WEAVIATE_CLIENT_URL = os.environ.get("WEAVIATE_CLIENT_URL") or "http://weaviate.compas-weaviate.svc.cluster.local:80"
 
 # Initialize Weaviate client
-client = weaviate.Client('http://localhost:8080')
+
+client = weaviate.Client("https://ryv8q0mqayz6uxdzizveq.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('jf6mRJoSfNIQmGYTSvNmoC09i8w3q0mc1pID'))       
 
 # Initialize embedding model
 llm = AzureOpenAI(
