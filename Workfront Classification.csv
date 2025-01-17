@@ -1,0 +1,29 @@
+﻿Activity Name,Description,General Guardrails,Adobe Analytics,Customer Journey Analytics,Target,Experience Platform Core,Audience Manager,,,,,,,,,,,,,,,,,
+Use Case Mapping to Solution Capability,Plan and map use cases and Key Performance Indicators (KPIs) to business outcomes.,,,,,,,,,,,,,,,,,,,,,,,
+Solution Review,Review the implementation of an Adobe solution to ensure alignment with customer use cases.,"Review of any 3rd party solutions, vendor extensions (i.e. Adobe Marketplaces, etc.), and/or custom code created by the client will be out of scope for this activity.
+
+No hands-on activities in the customer's codebase/environment will be involved.
+Performance or latency testing does not fall under the scope of Solution Reviews."," 
+For reviewing web implementation,  it can involve one or more of the following: Health of Current Implementation Variables (Health Dashboard), Scan of Website for General Tagging Failures (Observepoint Scan), Component Management and Best Practices (Component Review), Marketing Channel Audit
+
+For mobile implementation, it involves the following:
+Checking lifecycle metrics, page level tracking, consistent MID across all calls, validate variables are being set in the flow properly
+","Configuration settings within Customer Journey Analytics will be checked based on a use case. This includes making sure the Connections, Data Views, and components are setup correctly based on a customer's use case. ",,N/A,,,,,,,,,,,,,,,,,,
+Environment Review,"Conduct a detailed assessment of the customer's product environment to ensure compliance with contract terms and system limits. Focus on analyzing usage patterns, identifying overages, and providing guidance to remain within contractual boundaries.",,Only checking which Adobe Analytics features and settings are being used or have been configured,"Check the number of connections, data views, refreshing audiences, reportable/ingestable rows, datasets, stitched datasets, and components created in the data view to ensure the setup is not nearing system limits.",Only checking which Adobe Target features and settings are being used or have been configured,,Not Applicable,,,,,,,,,,,,,,,,,
+Deskside Coaching,"Enablement or review of a specific feature, concept or best practices, and product integrations for a specific  Adobe solution. ",,,,,,,,,,,,,,,,,,,,,,,
+Tool Workflow and Governance Optimization,"Tool governance related to the Adobe solution. Access, permissions, and controls to ensure proper management of the solution",,,,,,,,,,,,,,,,,,,,,,,
+Strategic Roadmap and Cycle Planning,Identify areas for improvement in strategic roadmap and developing an effective marketing strategy using the Adobe Experience Cloud Solutions.,,,,,,,,,,,,,,,,,,,,,,,
+Change Management and Communication Strategies,"Change management discipline. Optiimize communication strategies to support the use of the Adobe solution. Communicate and engage stakeholders during the adoption of the Adobe solution. 
+
+",,,,,,,,,,,,,,,,,,,,,,,
+Operating Model and Governance,"Establishing Centers of Excellence (CoE) and operating models within the customer's organization to promote collaboration and strong leadership support.
+",,,,,,,,,,,,,,,,,,,,,,,
+Digital Review and Benchmarking,Guidance  on how to effectively benchmark the customer's digital transformation maturity against industry benchmarks. ,,,,,,,,,,,,,,,,,,,,,,,
+Upgrade or Migration Readiness,Offer guidance and best practices on how to upgrade their Adobe Solution or migrate from one Adobe Solution to another.,,"Upgrade from AppMeasurement.js to Adobe Tags. 
+Upgrade Adobe Analytics to Web SDK","Migrate from Adobe Anaytics to Customer Journey Analytics using the Analytics Source Conector
+
+Migrate from Adobe Analytics to Customer Journey Analytics using Web SDK",,Migrate from Adobe Solution specific libraries to  AEP Web SDK,,,,,,,,,,,,,,,,,,
+Solution Troubleshooting,"Troubleshoot Adobe Experience Cloud Solution issues for certain features, configurations, or performance-related problems. Provide findings and guidance to resolve these issues.",,,,,,,,,,,,,,,,,,,,,,,
+Adoption Review,"Evaluate how effectively the customer is leveraging the Adobe solution and provide actionable recommendations to increase adoption and maximize value. Focus on identifying underutilized features, integration opportunities, and areas for expanded solution use.",,,,,,,,,,,,,,,,,,,,,,,
+Event Planning/Monitoring,"Planning critical go-lives, campaigns, product launches, and rollouts. Assist customers in preparing for major events, ensure systems can handle increased traffic and server demand, collaborate with customers for successful event execution. 24/7 monitoring during live events to ensure that nothing goes down ",,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
