@@ -270,7 +270,6 @@ def handle_response(response):
     st.session_state.solution = ""
     st.session_state.step = 1
     st.session_state.solution_prompt=False
-    st.session_state.launch_prompt=False
     st.session_state.show_solution_select = True
     st.session_state.show_launch_advisory_select = True
     st.rerun()
@@ -298,7 +297,7 @@ if st.session_state.user_input and st.session_state.step==1:
                 st.session_state.solution = solution
                 with st.chat_message("user"):
                     st.markdown(f"Solution: {solution}")
-                st.session_state.show_solution_select = False
+
                 if precheck_result == "Enablement Bootcamp":
                     st.session_state.step = 2
                 else:
@@ -307,11 +306,9 @@ if st.session_state.user_input and st.session_state.step==1:
                     handle_response(response)
 
 if st.session_state.step==2:
-    if not st.session_state.launch_prompt:
-        st.session_state.launch_prompt = True
-        st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
-        with st.chat_message("assistant", avatar='Zeus.png'):
-            st.markdown("Is this part of a Launch Advisory Activity?")
+    st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
+    with st.chat_message("assistant", avatar='Zeus.png'):
+        st.markdown("Is this part of a Launch Advisory Activity?")
     
 
     if st.session_state.show_launch_advisory_select:
@@ -320,7 +317,6 @@ if st.session_state.step==2:
             st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
             with st.chat_message("user"):
                 st.markdown(f"Launch Advisory: {launch_advisory}")
-            st.session_state.show_launch_advisory_select = False
             if launch_advisory == "No":
                 response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
                 handle_response(response)
