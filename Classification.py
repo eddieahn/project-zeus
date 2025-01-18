@@ -266,6 +266,11 @@ if 'step' not in st.session_state:
     st.session_state.step = 1
 
 if st.session_state.user_input and st.session_state.step==1:
+    precheck_result = precheck(st.session_state.user_input)
+    if precheck_result == "Irrelevant":
+        st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
+        with st.chat_message("assistant", avatar='Zeus.png'):
+            st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
     solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
     if st.button("Submit",key="submit_solution"):
         st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
@@ -273,13 +278,7 @@ if st.session_state.user_input and st.session_state.step==1:
         with st.chat_message("user"):
             st.markdown(f"Solution: {solution}")
 
-        # Precheck
-        precheck_result = precheck(st.session_state.user_input)
-        if precheck_result == "Irrelevant":
-            st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
-            with st.chat_message("assistant", avatar='Zeus.png'):
-                st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
-        elif precheck_result == "Enablement Bootcamp":
+        if precheck_result == "Enablement Bootcamp":
             st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
             with st.chat_message("assistant", avatar='Zeus.png'):
                 st.markdown("Is this part of a Launch Advisory Activity?")
