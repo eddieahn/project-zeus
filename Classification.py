@@ -225,6 +225,9 @@ if 'user_input' not in st.session_state:
 if 'solution_prompt' not in st.session_state:
     st.session_state.solution_prompt = False
 
+if 'launch_prompt' not in st.session_state:
+    st.session_state.launch_prompt = False
+
 if 'show_solution_select' not in st.session_state:
     st.session_state.show_solution_select = True
 
