@@ -271,23 +271,24 @@ if st.session_state.user_input and st.session_state.step==1:
         st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
         with st.chat_message("assistant", avatar='Zeus.png'):
             st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
-    solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
-    if st.button("Submit",key="submit_solution"):
-        st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
-        st.session_state.solution = solution
-        with st.chat_message("user"):
-            st.markdown(f"Solution: {solution}")
+    else:
+        solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
+        if st.button("Submit",key="submit_solution"):
+            st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
+            st.session_state.solution = solution
+            with st.chat_message("user"):
+                st.markdown(f"Solution: {solution}")
 
-        if precheck_result == "Enablement Bootcamp":
-            st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
-            with st.chat_message("assistant", avatar='Zeus.png'):
-                st.markdown("Is this part of a Launch Advisory Activity?")
-            st.session_state.step = 2
-        else:
-            with st.spinner("Classifying..."):
-                response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
+            if precheck_result == "Enablement Bootcamp":
+                st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
+                with st.chat_message("assistant", avatar='Zeus.png'):
+                    st.markdown("Is this part of a Launch Advisory Activity?")
+                st.session_state.step = 2
+            else:
+                with st.spinner("Classifying..."):
+                    response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
 
-            handle_response(response)
+                handle_response(response)
 
 if st.session_state.step==2:
     launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
