@@ -222,15 +222,6 @@ if 'precheck_result' not in st.session_state:
 if 'user_input' not in st.session_state:
     st.session_state.user_input=""
 
-if 'solution_prompt' not in st.session_state:
-    st.session_state.solution_prompt = False
-
-if 'show_solution_select' not in st.session_state:
-    st.session_state.show_solution_select = True
-
-if 'show_launch_advisory_select' not in st.session_state:
-    st.session_state.show_launch_advisory_select = True
-
 # Display initial message if chat history is empty
 if not st.session_state.chat_history:
     st.session_state.chat_history.append({"role": "assistant", "content": "Hi! I am Zeus, the Classification Assistant! Please submit a customer request and I will help you determine which Success Accelerator is the best fit!"})
@@ -270,11 +261,13 @@ def handle_response(response):
     st.session_state.solution = ""
     st.session_state.step = 1
     st.session_state.solution_prompt=False
-    st.session_state.show_solution_select = True
-    st.session_state.show_launch_advisory_select = True
     st.rerun()
 
+if 'step' not in st.session_state:
+    st.session_state.step = 1
 
+if 'solution_prompt' not in st.session_state:
+    st.session_state.solution_prompt = False
 
 if st.session_state.user_input and st.session_state.step==1:
     precheck_result = precheck(st.session_state.user_input)
@@ -290,43 +283,39 @@ if st.session_state.user_input and st.session_state.step==1:
             with st.chat_message("assistant",avatar='Zeus.png'):
                 st.markdown("Please select a solution:")
 
-        if st.session_state.show_solution_select:
-            solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
-            if st.button("Submit",key="submit_solution"):
-                st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
-                st.session_state.solution = solution
-                with st.chat_message("user"):
-                    st.markdown(f"Solution: {solution}")
+        solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
+        if st.button("Submit",key="submit_solution"):
+            st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
+            st.session_state.solution = solution
+            with st.chat_message("user"):
+                st.markdown(f"Solution: {solution}")
 
-                if precheck_result == "Enablement Bootcamp":
-                    st.session_state.step = 2
-                else:
-                    with st.spinner("Classifying..."):
-                        response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
-                    handle_response(response)
+            if precheck_result == "Enablement Bootcamp":
+                st.session_state.step = 2
+            else:
+                with st.spinner("Classifying..."):
+                    response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
+                handle_response(response)
 
 if st.session_state.step==2:
     st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
     with st.chat_message("assistant", avatar='Zeus.png'):
         st.markdown("Is this part of a Launch Advisory Activity?")
-    
+    launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
+    if st.button("Submit", key="submit_launch_advisory"):
+        st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
+        with st.chat_message("user"):
+            st.markdown(f"Launch Advisory: {launch_advisory}")
+        if launch_advisory == "No":
+            response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
+            handle_response(response)
+            st.session_state.step = 1
+        else:
+            with st.spinner("Classifying..."):
+                response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
 
-    if st.session_state.show_launch_advisory_select:
-        launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
-        if st.button("Submit", key="submit_launch_advisory"):
-            st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
-            with st.chat_message("user"):
-                st.markdown(f"Launch Advisory: {launch_advisory}")
-            if launch_advisory == "No":
-                response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
-                handle_response(response)
-                st.session_state.step = 1
-            else:
-                with st.spinner("Classifying..."):
-                    response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
-
-                handle_response(response)
-                st.session_state.step = 1
+            handle_response(response)
+            st.session_state.step = 1
 
 # if st.session_state.step == 1 or st.session_state.step == 2 or st.session_state.step == 3:
 #     customer_ask = st.text_area("Customer Ask", "")
