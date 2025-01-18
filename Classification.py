@@ -260,14 +260,10 @@ def handle_response(response):
     st.session_state.user_input = ""
     st.session_state.solution = ""
     st.session_state.step = 1
-    st.session_state.solution_prompt=False
     st.rerun()
 
 if 'step' not in st.session_state:
     st.session_state.step = 1
-
-if 'solution_prompt' not in st.session_state:
-    st.session_state.solution_prompt = False
 
 if st.session_state.user_input and st.session_state.step==1:
     precheck_result = precheck(st.session_state.user_input)
@@ -277,12 +273,9 @@ if st.session_state.user_input and st.session_state.step==1:
             st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
     else:
         # Prompt user to select a solution
-        if not st.session_state.solution_prompt:
-            st.session_state.solution_prompt = True
-            st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
-            with st.chat_message("assistant",avatar='Zeus.png'):
-                st.markdown("Please select a solution:")
-
+        st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
+        with st.chat_message("assistant",avatar='Zeus.png'):
+            st.markdown("Please select a solution:")
         solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
         if st.button("Submit",key="submit_solution"):
             st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
