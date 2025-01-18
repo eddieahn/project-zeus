@@ -291,6 +291,9 @@ if st.session_state.user_input and st.session_state.step==1:
                 st.markdown(f"Solution: {solution}")
 
             if precheck_result == "Enablement Bootcamp":
+                st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
+                with st.chat_message("assistant", avatar='Zeus.png'):
+                    st.markdown("Is this part of a Launch Advisory Activity?")
                 st.session_state.step = 2
             else:
                 with st.spinner("Classifying..."):
@@ -299,9 +302,6 @@ if st.session_state.user_input and st.session_state.step==1:
                 handle_response(response)
 
 if st.session_state.step==2:
-    st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
-    with st.chat_message("assistant", avatar='Zeus.png'):
-        st.markdown("Is this part of a Launch Advisory Activity?")
     launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
     if st.button("Submit", key="submit_launch_advisory"):
         st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
