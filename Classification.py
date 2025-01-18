@@ -47,21 +47,6 @@ solution_mapping = {
 }
 
 def precheck(customer_ask):
-    # scope_prompt = f"""
-    # You are a classification assistant. Determine if the following customer query is within the scope of services provided. If it is out of scope, respond with "Out of Scope". Otherwise, respond with "In Scope".
-
-    # Out-of-Scope Criteria:
-    # - Custom code solutions
-    # - Requests for unsupported features that are not part of the Adobe Experience Cloud or Adobe Experience Platform suite
-    # - Requests for services not provided by Adobe Experience Cloud or Adobe Experience Platform suite
-    # - Requests that involve the Adobe Experience Cloud or Adobe Experience Platform suite products implemented using third party tools or services 
-
-    # Customer Query: "{customer_ask}"
-    # """
-    # scope_response = llm.complete(scope_prompt)
-    # scope_text = scope_response.text.strip()
-    # if scope_text == "Out of Scope":
-    #     return "The customer ask is out of scope for a Success Accelerator."
 
     relevant_prompt=f"""
     You are a classification assistant. Determine if the input is a customer request.
@@ -78,7 +63,32 @@ def precheck(customer_ask):
 
     if relevant_text == "Irrelevant":
         return relevant_text
+    else:
+        return "In Scope"
 
+    # else:
+    #     scope_prompt = f"""
+    #     You are a classification assistant. Determine if the following customer query is within the scope of services provided. If it is out of scope, respond with "Out of Scope". Otherwise, respond with "In Scope".
+
+    #     Out-of-Scope Criteria:
+    #     - Custom code solutions
+    #     - Requests for unsupported features that are not part of the Adobe Experience Cloud or Adobe Experience Platform suite
+    #     - Requests for services not provided by Adobe Experience Cloud or Adobe Experience Platform suite
+    #     - Requests that involve the Adobe Experience Cloud or Adobe Experience Platform suite products implemented using third party tools or services 
+
+    #     Customer Query: "{customer_ask}"
+    #     """
+    #     scope_response = llm.complete(scope_prompt)
+    #     scope_text = scope_response.text.strip()
+    #     if scope_text == "Out of Scope":
+    #         return "The customer ask is out of scope for a Success Accelerator."
+    #     else:
+    #         return "In Scope"
+
+
+
+
+def assistant(customer_ask):
     enablement_prompt = f"""
     You are a classification assistant. Determine if the following customer request involves a 101 Enablement Bootcamp or a multi-session training program for new users, focusing on learning the basics of the Adobe Solution. If it does, respond with "True". Otherwise, respond with "False".
 
@@ -89,6 +99,8 @@ def precheck(customer_ask):
 
     if enablement_text=="True":
         return "Enablement Bootcamp"
+
+
 
 def classify_customer_ask_with_rag(customer_ask, solution):
     solution_property = solution_mapping.get(solution)
@@ -219,8 +231,18 @@ if 'chat_history' not in st.session_state:
 if 'precheck_result' not in st.session_state:
     st.session_state.precheck_result = None
 
+if 'assistant_check' not in st.session_state:
+    st.session_state.assistant_check = None
+
 if 'user_input' not in st.session_state:
     st.session_state.user_input=""
+
+if 'solution_submitted' not in st.session_state:
+    st.session_state.solution_submitted = False
+
+if 'launch_advisory_submitted' not in st.session_state:
+    st.session_state.launch_advisory_submitted = False
+
 
 # Display initial message if chat history is empty
 if not st.session_state.chat_history:
@@ -238,10 +260,6 @@ if user_input := st.chat_input("Enter your customer ask:"):
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Prompt user to select a solution
-    st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
-    with st.chat_message("assistant",avatar='Zeus.png'):
-        st.markdown("Please select a solution:")
 
 # Solution selection
 
@@ -260,52 +278,102 @@ def handle_response(response):
     st.session_state.user_input = ""
     st.session_state.solution = ""
     st.session_state.step = 1
+    st.session_state.precheck_result = None
+    st.session_state.assistant_check=False
+    st.session_state.launch_advisory_submitted=False
+    st.session_state.solution_submitted=False
     st.rerun()
 
 if 'step' not in st.session_state:
     st.session_state.step = 1
 
+
+
+
 if st.session_state.user_input and st.session_state.step==1:
-    solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
-    if st.button("Submit",key="submit_solution"):
-        st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
-        st.session_state.solution = solution
-        with st.chat_message("user"):
-            st.markdown(f"Solution: {solution}")
-
-        # Precheck
-        precheck_result = precheck(st.session_state.user_input)
+    if not st.session_state.precheck_result:
+        precheck_result=precheck(st.session_state.user_input)
+        st.session_state.precheck_result = precheck_result
         if precheck_result == "Irrelevant":
-            st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
-            with st.chat_message("assistant", avatar='Zeus.png'):
-                st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
-        elif precheck_result == "Enablement Bootcamp":
-            st.session_state.chat_history.append({"role": "assistant", "content": "Is this part of a Launch Advisory Activity?"})
-            with st.chat_message("assistant", avatar='Zeus.png'):
-                st.markdown("Is this part of a Launch Advisory Activity?")
+            response="The input provided is not a customer request. Please provide a relevant customer request for classification."
+            handle_response(response)
+        else:
             st.session_state.step = 2
+
+
+if st.session_state.step==2 and not st.session_state.solution_submitted:
+        ph=st.empty()
+        with ph.container():
+            solution=st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select",disabled=st.session_state.solution_submitted)
+            if st.button("Submit", key="submit_solution"):
+                st.session_state.solution_submitted = True
+                st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
+                st.session_state.solution = solution
+                with st.chat_message("user"):
+                    st.markdown(f"Solution: {solution}")
+                st.session_state.step = 3
+                ph.empty()
+                st.rerun()
+
+if st.session_state.step==3:
+    if not st.session_state.assistant_check:
+        print("hello")
+        assistant_check = assistant(st.session_state.user_input)
+        st.session_state.assistant_check = assistant_check
+        if assistant_check == "Enablement Bootcamp":
+            st.session_state.step="Launch"
         else:
-            with st.spinner("Classifying..."):
-                response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
+            st.session_state.step="Classify"
 
-            handle_response(response)
+if st.session_state.step=="Launch" and not st.session_state.launch_advisory_submitted:
+        ph=st.empty()
+        with ph.container():
+            launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
+            if st.button("Submit", key="submit_launch_advisory"):
+                st.session_state.launch_advisory_submitted = True
+                st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
+                with st.chat_message("user"):
+                    st.markdown(f"Launch Advisory: {launch_advisory}")
+                if launch_advisory == "No":
+                    response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+                    # with st.chat_message("user"):
+                    #     st.markdown(f"Unfortunately that customer request can only be submitted alongside Launch Advisory.")
+                    st.session_state.user_input = ""
+                    st.session_state.solution = ""
+                    st.session_state.step = 1
+                    st.session_state.precheck_result = None
+                    st.session_state.assistant_check=False
+                    st.session_state.launch_advisory_submitted=False
+                    st.session_state.solution_submitted=False
+                    st.rerun()
+                    
+                else:
+                    st.session_state.step="Classify"
+                    ph.empty()
+                    st.rerun()
 
-if st.session_state.step==2:
-    launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
-    if st.button("Submit", key="submit_launch_advisory"):
-        st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
-        with st.chat_message("user"):
-            st.markdown(f"Launch Advisory: {launch_advisory}")
-        if launch_advisory == "No":
-            response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
-            handle_response(response)
-            st.session_state.step = 1
-        else:
-            with st.spinner("Classifying..."):
-                response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
+if st.session_state.step=="Classify":
+    with st.spinner("Classifying..."):
+        response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
+    handle_response(response)
 
-            handle_response(response)
-            st.session_state.step = 1
+# if st.session_state.step==2:
+#     launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
+#     if st.button("Submit", key="submit_launch_advisory"):
+#         st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
+#         with st.chat_message("user"):
+#             st.markdown(f"Launch Advisory: {launch_advisory}")
+#         if launch_advisory == "No":
+#             response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
+#             handle_response(response)
+#             st.session_state.step = 1
+#         else:
+#             with st.spinner("Classifying..."):
+#                 response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
+
+#             handle_response(response)
+#             st.session_state.step = 1
 
 # if st.session_state.step == 1 or st.session_state.step == 2 or st.session_state.step == 3:
 #     customer_ask = st.text_area("Customer Ask", "")
