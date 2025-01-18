@@ -238,10 +238,10 @@ if user_input := st.chat_input("Enter your customer ask:"):
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # # Prompt user to select a solution
-    # st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
-    # with st.chat_message("assistant",avatar='Zeus.png'):
-    #     st.markdown("Please select a solution:")
+    # Prompt user to select a solution
+    st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
+    with st.chat_message("assistant",avatar='Zeus.png'):
+        st.markdown("Please select a solution:")
 
 # Solution selection
 
