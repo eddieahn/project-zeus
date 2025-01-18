@@ -272,6 +272,10 @@ if st.session_state.user_input and st.session_state.step==1:
         with st.chat_message("assistant", avatar='Zeus.png'):
             st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
     else:
+        # Prompt user to select a solution
+        st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
+        with st.chat_message("assistant",avatar='Zeus.png'):
+            st.markdown("Please select a solution:")
         solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
         if st.button("Submit",key="submit_solution"):
             st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
