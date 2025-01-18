@@ -283,10 +283,10 @@ if st.session_state.user_input and st.session_state.step==1:
             with st.chat_message("assistant",avatar='Zeus.png'):
                 st.markdown("Please select a solution:")
 
-        solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
+            solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
+            st.session_state.solution = solution
         if st.button("Submit",key="submit_solution"):
             st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
-            st.session_state.solution = solution
             with st.chat_message("user"):
                 st.markdown(f"Solution: {solution}")
 
@@ -295,6 +295,7 @@ if st.session_state.user_input and st.session_state.step==1:
             else:
                 with st.spinner("Classifying..."):
                     response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
+
                 handle_response(response)
 
 if st.session_state.step==2:
