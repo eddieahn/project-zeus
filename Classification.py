@@ -286,28 +286,33 @@ if st.session_state.user_input and st.session_state.step==1:
         st.session_state.chat_history.append({"role": "assistant", "content": "The input provided is not a customer request. Please provide a relevant customer request for classification."})
         with st.chat_message("assistant", avatar='Zeus.png'):
             st.markdown("The input provided is not a customer request. Please provide a relevant customer request for classification.")
+    elif precheck_result == "Enablement Bootcamp":
+        st.session_state.step=2
     else:
-        # Prompt user to select a solution
-        if not st.session_state.solution_prompt:
-            st.session_state.solution_prompt = True
-            st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
-            with st.chat_message("assistant",avatar='Zeus.png'):
-                st.markdown("Please select a solution:")
+        st.session_state.step=3
 
-        if st.session_state.show_solution_select:
-            solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
-            if st.button("Submit",key="submit_solution"):
-                st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
-                st.session_state.solution = solution
-                with st.chat_message("user"):
-                    st.markdown(f"Solution: {solution}")
-                st.session_state.show_solution_select = False
-                if precheck_result == "Enablement Bootcamp":
-                    st.session_state.step = 2
-                else:
-                    with st.spinner("Classifying..."):
-                        response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
-                    handle_response(response)
+if st.session_state.step==3:
+    # Prompt user to select a solution
+    if not st.session_state.solution_prompt:
+        st.session_state.solution_prompt = True
+        st.session_state.chat_history.append({"role": "assistant", "content": "Please select a solution:"})
+        with st.chat_message("assistant",avatar='Zeus.png'):
+            st.markdown("Please select a solution:")
+
+    if st.session_state.show_solution_select:
+        solution = st.selectbox("Select Solution", list(solution_mapping.keys()), key="solution_select")
+        if st.button("Submit",key="submit_solution"):
+            st.session_state.chat_history.append({"role": "user", "content": f"Solution: {solution}"})
+            st.session_state.solution = solution
+            with st.chat_message("user"):
+                st.markdown(f"Solution: {solution}")
+            st.session_state.show_solution_select = False
+            if precheck_result == "Enablement Bootcamp":
+                st.session_state.step = 2
+            else:
+                with st.spinner("Classifying..."):
+                    response = classify_customer_ask_with_rag(st.session_state.user_input, solution)
+                handle_response(response)
 
 if st.session_state.step==2:
     if not st.session_state.launch_prompt:
