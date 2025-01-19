@@ -379,6 +379,8 @@ if st.session_state.step=="Launch" and not st.session_state.launch_advisory_subm
                     st.session_state.chat_history.append({"role": "assistant", "content": response})
                     # with st.chat_message("user"):
                     #     st.markdown(f"Unfortunately that customer request can only be submitted alongside Launch Advisory.")
+                    st.session_state.last_input = st.session_state.user_input
+                    st.session_state.result=response
                     st.session_state.user_input = ""
                     st.session_state.solution = ""
                     st.session_state.step = 1
@@ -386,6 +388,7 @@ if st.session_state.step=="Launch" and not st.session_state.launch_advisory_subm
                     st.session_state.assistant_check=False
                     st.session_state.launch_advisory_submitted=False
                     st.session_state.solution_submitted=False
+                    st.session_state.feedback=True
                     st.rerun()
                     
                 else:
