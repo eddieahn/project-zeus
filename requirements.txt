@@ -19,3 +19,4 @@ llamaindex-py-client==0.1.16
 pandas==2.2.1
 weaviate-client==3.26.2
 streamlit
+SQLAlchemy==1.4.0

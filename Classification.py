@@ -5,6 +5,7 @@ import weaviate
 import os
 import time
 import sqlite3
+from sqlalchemy import text
 
 # Set environment variables or use default values
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or "de94456faa5b415b943034ed720811ed"
@@ -309,14 +310,17 @@ if'feedback_chosen' not in st.session_state:
 
 def store_feedback():
     print(st.session_state.feedback_chosen)
-    conn = sqlite3.connect('feedback.db')
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO feedback (user_input, response, feedback)
-        VALUES (?, ?, ?)
-    ''', (st.session_state.last_input, st.session_state.result, st.session_state.feedback_chosen))
-    conn.commit()
-    conn.close()
+    conn = st.connection('feedback_db',type='sql')
+    with conn.session as s:
+        s.execute(text('''
+            INSERT INTO feedback (user_input, response, feedback)
+            VALUES (:user_input, :response, :feedback)
+        '''), {
+            'user_input': st.session_state.last_input,
+            'response': st.session_state.result,
+            'feedback': st.session_state.feedback_chosen
+        })
+        s.commit()
     st.session_state.feedback=False
 
 if st.session_state.feedback:
