@@ -4,8 +4,7 @@ from llama_index.llms.azure_openai import AzureOpenAI
 import weaviate
 import os
 import time
-import pandas as pd
-import numpy as np
+import sqlite3
 
 # Set environment variables or use default values
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or "de94456faa5b415b943034ed720811ed"
@@ -45,6 +44,8 @@ solution_mapping = {
     "Experience Platform Core": "experience_platform_core",
     "Audience Manager": "audience_manager"
 }
+
+
 
 def precheck(customer_ask):
 
@@ -100,7 +101,15 @@ def assistant(customer_ask):
     if enablement_text=="True":
         return "Enablement Bootcamp"
 
-
+def store_feedback(user_input, solution, feedback):
+    conn = sqlite3.connect('feedback.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO feedback (user_input, solution, feedback)
+        VALUES (?, ?, ?)
+    ''', (user_input, solution, feedback))
+    conn.commit()
+    conn.close()
 
 def classify_customer_ask_with_rag(customer_ask, solution):
     solution_property = solution_mapping.get(solution)
@@ -243,6 +252,12 @@ if 'solution_submitted' not in st.session_state:
 if 'launch_advisory_submitted' not in st.session_state:
     st.session_state.launch_advisory_submitted = False
 
+if 'feedback' not in st.session_state:
+    st.session_state.feedback = False
+
+if 'last_input' not in st.session_state:
+    st.session_state.last_input = None
+
 
 # Display initial message if chat history is empty
 if not st.session_state.chat_history:
@@ -273,8 +288,10 @@ def handle_response(response):
 
     with st.chat_message("assistant", avatar='Zeus.png'):
         st.write_stream(stream_data)
-
+    st.session_state.feedback=True
     # Reset input and solution selector
+    st.session_state.result=response
+    st.session_state.last_input = st.session_state.user_input
     st.session_state.user_input = ""
     st.session_state.solution = ""
     st.session_state.step = 1
@@ -286,10 +303,30 @@ def handle_response(response):
 
 if 'step' not in st.session_state:
     st.session_state.step = 1
+ 
+if'feedback_chosen' not in st.session_state:
+    st.session_state.feedback_chosen=None
+
+def store_feedback():
+    print(st.session_state.feedback_chosen)
+    conn = sqlite3.connect('feedback.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO feedback (user_input, response, feedback)
+        VALUES (?, ?, ?)
+    ''', (st.session_state.last_input, st.session_state.result, st.session_state.feedback_chosen))
+    conn.commit()
+    conn.close()
+    st.session_state.feedback=False
+
+if st.session_state.feedback:
+    st.feedback("thumbs", key="feedback_chosen", on_change=store_feedback)
+    # st.session_state.feedback_chosen=st.feedback("thumbs")
+    # store_feedback()
 
 
 
-
+#Checking to see if the user has inputted a customer request. If so, then we will check if the input is relevant
 if st.session_state.user_input and st.session_state.step==1:
     if not st.session_state.precheck_result:
         precheck_result=precheck(st.session_state.user_input)
@@ -300,7 +337,7 @@ if st.session_state.user_input and st.session_state.step==1:
         else:
             st.session_state.step = 2
 
-
+#If the input is relevant, we will check to see which solution the request is related to
 if st.session_state.step==2 and not st.session_state.solution_submitted:
         ph=st.empty()
         with ph.container():
@@ -315,16 +352,19 @@ if st.session_state.step==2 and not st.session_state.solution_submitted:
                 ph.empty()
                 st.rerun()
 
+#Once the solution is selected, we will check if the request is related to the Enablement Bootcamp to determine if it is a Launch Advisory
 if st.session_state.step==3:
     if not st.session_state.assistant_check:
-        print("hello")
+        #Check if the request is related to the Enablement Bootcamp
         assistant_check = assistant(st.session_state.user_input)
         st.session_state.assistant_check = assistant_check
         if assistant_check == "Enablement Bootcamp":
             st.session_state.step="Launch"
         else:
+            #If the request is not related to the Enablement Bootcamp, we will classify the request. Go to classify step.
             st.session_state.step="Classify"
 
+#If the request is related to the Enablement Bootcamp, we will check if it is being submitted as part of a Launch Advisory
 if st.session_state.step=="Launch" and not st.session_state.launch_advisory_submitted:
         ph=st.empty()
         with ph.container():
@@ -353,68 +393,12 @@ if st.session_state.step=="Launch" and not st.session_state.launch_advisory_subm
                     ph.empty()
                     st.rerun()
 
+#If the request is not related to the Enablement Bootcamp, we will classify the request
 if st.session_state.step=="Classify":
     with st.spinner("Classifying..."):
         response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
     handle_response(response)
 
-# if st.session_state.step==2:
-#     launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"], key="launch_advisory")
-#     if st.button("Submit", key="submit_launch_advisory"):
-#         st.session_state.chat_history.append({"role": "user", "content": f"Launch Advisory: {launch_advisory}"})
-#         with st.chat_message("user"):
-#             st.markdown(f"Launch Advisory: {launch_advisory}")
-#         if launch_advisory == "No":
-#             response = "Unfortunately that customer request can only be submitted alongside Launch Advisory."
-#             handle_response(response)
-#             st.session_state.step = 1
-#         else:
-#             with st.spinner("Classifying..."):
-#                 response = classify_customer_ask_with_rag(st.session_state.user_input, st.session_state.solution)
-
-#             handle_response(response)
-#             st.session_state.step = 1
-
-# if st.session_state.step == 1 or st.session_state.step == 2 or st.session_state.step == 3:
-#     customer_ask = st.text_area("Customer Ask", "")
-#     solution = st.selectbox("Solution", list(solution_mapping.keys()))
-#     if st.button("Classify"):
-#         st.session_state.customer_ask = customer_ask
-#         st.session_state.solution = solution
-#         st.session_state.step = 2
-
-
-# if st.session_state.step == 2:
-#     if st.session_state.precheck_result is None:
-#         st.session_state.precheck_result = precheck(st.session_state.customer_ask)
-#     result = st.session_state.precheck_result
-#     if result == "Irrelevant":
-#         st.write("The input provided is not a customer request. Please provide a relevant customer request for classification.")
-#     elif result == "Enablement Bootcamp":
-#         launch_advisory = st.selectbox("Is this being submitted as part of a Launch Advisory activity?", ["Yes", "No"])
-#         if st.button("Submit"):
-#             if launch_advisory == "No":
-#                 st.write("Unfortunately that customer request can only be submitted alongside Launch Advisory only.")
-#             else:
-#                 st.session_state.step = 3
-#     else:
-#         st.session_state.result = result
-#         st.session_state.step = 3
-
-# if st.session_state.step == 3:
-#     with st.spinner('Classifying...'):
-#         st.session_state.result = classify_customer_ask_with_rag(st.session_state.customer_ask, st.session_state.solution)
-#     col1, col2 = st.columns([1, 4])
-#     with col1:
-#         st.image("Zeus.png", width=100)
-#     with col2:
-#         st.write(st.session_state.result)
-#     if st.button("Classify Another?"):
-#         st.session_state.step = 1
-#         st.session_state.result = ""
-#         st.session_state.customer_ask = ""
-#         st.session_state.solution = ""
-#         st.session_state.precheck_result = None
 
 
 
