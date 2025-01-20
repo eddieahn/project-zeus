@@ -311,9 +311,13 @@ def append_row(df, row):
         pd.DataFrame([row], columns=row.index)]
     ).reset_index(drop=True)
 
+def create_GSheetsConnection():
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    return conn
+
 def store_feedback():
     print(st.session_state.feedback_chosen)
-    conn = st.connection("gsheets", type=GSheetsConnection)
+    conn=create_GSheetsConnection()
     df = conn.read(ttl=1)
     record={'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
     new_row=pd.Series(record)
