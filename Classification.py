@@ -6,6 +6,10 @@ import os
 import time
 import sqlite3
 from sqlalchemy import text
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection
+import ssl
+import datetime
 
 # Set environment variables or use default values
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or "de94456faa5b415b943034ed720811ed"
@@ -102,15 +106,6 @@ def assistant(customer_ask):
     if enablement_text=="True":
         return "Enablement Bootcamp"
 
-def store_feedback(user_input, solution, feedback):
-    conn = sqlite3.connect('feedback.db')
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO feedback (user_input, solution, feedback)
-        VALUES (?, ?, ?)
-    ''', (user_input, solution, feedback))
-    conn.commit()
-    conn.close()
 
 def classify_customer_ask_with_rag(customer_ask, solution):
     solution_property = solution_mapping.get(solution)
@@ -308,20 +303,35 @@ if 'step' not in st.session_state:
 if'feedback_chosen' not in st.session_state:
     st.session_state.feedback_chosen=None
 
+
+ssl._create_default_https_context = ssl._create_unverified_context
+def append_row(df, row):
+    return pd.concat([
+        df,
+        pd.DataFrame([row], columns=row.index)]
+    ).reset_index(drop=True)
+
 def store_feedback():
     print(st.session_state.feedback_chosen)
-    conn = st.connection('feedback_db',type='sql')
-    with conn.session as s:
-        s.execute(text('''
-            INSERT INTO feedback (user_input, response, feedback)
-            VALUES (:user_input, :response, :feedback)
-        '''), {
-            'user_input': st.session_state.last_input,
-            'response': st.session_state.result,
-            'feedback': st.session_state.feedback_chosen
-        })
-        s.commit()
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df = conn.read()
+    record={'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
+    new_row=pd.Series(record)
+    df=append_row(df,new_row)
+    conn.update(data=df)
+    # conn = st.connection('feedback_db',type='sql')
+    # with conn.session as s:
+    #     s.execute(text('''
+    #         INSERT INTO feedback (user_input, response, feedback)
+    #         VALUES (:user_input, :response, :feedback)
+    #     '''), {
+    #         'user_input': st.session_state.last_input,
+    #         'response': st.session_state.result,
+    #         'feedback': st.session_state.feedback_chosen
+    #     })
+    #     s.commit()
     st.session_state.feedback=False
+
 
 if st.session_state.feedback:
     st.feedback("thumbs", key="feedback_chosen", on_change=store_feedback)
