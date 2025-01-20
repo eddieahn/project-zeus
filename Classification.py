@@ -314,7 +314,7 @@ def append_row(df, row):
 def store_feedback():
     print(st.session_state.feedback_chosen)
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df = conn.read()
+    df = conn.read(ttl=1)
     record={'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
     new_row=pd.Series(record)
     df=append_row(df,new_row)
