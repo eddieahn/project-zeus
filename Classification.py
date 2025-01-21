@@ -46,8 +46,6 @@ solution_mapping = {
     "Adobe Analytics": "adobe_analytics",
     "Customer Journey Analytics": "customer_journey_analytics",
     "Target": "target",
-    "Experience Platform Core": "experience_platform_core",
-    "Audience Manager": "audience_manager"
 }
 
 
@@ -254,6 +252,9 @@ if 'feedback' not in st.session_state:
 if 'last_input' not in st.session_state:
     st.session_state.last_input = None
 
+if 'last_solution' not in st.session_state:
+    st.session_state.last_solution = ""
+
 
 # Display initial message if chat history is empty
 if not st.session_state.chat_history:
@@ -288,6 +289,7 @@ def handle_response(response):
     # Reset input and solution selector
     st.session_state.result=response
     st.session_state.last_input = st.session_state.user_input
+    st.session_state.last_solution = st.session_state.solution
     st.session_state.user_input = ""
     st.session_state.solution = ""
     st.session_state.step = 1
@@ -319,7 +321,7 @@ def store_feedback():
     print(st.session_state.feedback_chosen)
     conn=create_GSheetsConnection()
     df = conn.read(ttl=1)
-    record={'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
+    record={'solution':st.session_state.last_solution,'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
     new_row=pd.Series(record)
     df=append_row(df,new_row)
     conn.update(data=df)
@@ -398,6 +400,7 @@ if st.session_state.step=="Launch" and not st.session_state.launch_advisory_subm
                     # with st.chat_message("user"):
                     #     st.markdown(f"Unfortunately that customer request can only be submitted alongside Launch Advisory.")
                     st.session_state.last_input = st.session_state.user_input
+                    st.session_state.last_solution = st.session_state.solution
                     st.session_state.result=response
                     st.session_state.user_input = ""
                     st.session_state.solution = ""
