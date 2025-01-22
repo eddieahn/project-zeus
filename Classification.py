@@ -214,6 +214,7 @@ def classify_customer_ask_with_rag(customer_ask, solution):
 
 st.title("Classification Assistant")
 st.logo('FE-logo.png',size='large')
+st.caption("Please note that this is a beta release and only classifies activities for Adobe Analytics, Customer Journey Analytics, and Target. This early access release allows you to test out the features and functionality before the official launch, and your feedback is essential in shaping the final product.")
 
 if 'step' not in st.session_state:
     st.session_state.step = 1
