@@ -324,7 +324,7 @@ def create_GSheetsConnection():
 def store_feedback(feedback):
 
     conn=create_GSheetsConnection()
-    df = conn.read(worksheet="Classification-Assistant-Feedback",ttl=1)
+    df = conn.read(ttl=1)
     record={'solution':st.session_state.last_solution,'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':feedback['score'],'comments':feedback['text'], 'timestamp':datetime.datetime.now()}
     new_row=pd.Series(record)
     df=append_row(df,new_row)
