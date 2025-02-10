@@ -28,7 +28,7 @@ embedding_model = AzureOpenAIEmbedding(
 
 #client = weaviate.Client("http://weaviate.compas-weaviate.svc.cluster.local:80")
 
-client = weaviate.Client("https://ryv8q0mqayz6uxdzizveq.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('jf6mRJoSfNIQmGYTSvNmoC09i8w3q0mc1pID'))                                  
+client = weaviate.Client("https://njwzpirmqjkq9gx9myrlug.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('upw9FB6sgQiL7sq1CuF0UanFKmo9Nslw8qrC'))                                  
 
 print(client.is_ready())
 
@@ -51,18 +51,18 @@ print(client.is_ready())
 
 
 
-response = client.query.get(
-    class_name="WorkfrontClassification",
-    properties=["description", "activity_type","adobe_analytics","customer_journey_analytics","target","experience_platform_core","audience_manager"]
-).do()
+# response = client.query.get(
+#     class_name="WorkfrontClassification",
+#     properties=["description", "activity_type","adobe_analytics","customer_journey_analytics","target","experience_platform_core","audience_manager"]
+# ).do()
 
 
-# Print the retrieved objects
-if response["data"]["Get"]["WorkfrontClassification"]:
-    for obj in response["data"]["Get"]["WorkfrontClassification"]:
-        print(obj)
-else:
-    print("No objects found in the WorkfrontClassification class.")
+# # Print the retrieved objects
+# if response["data"]["Get"]["WorkfrontClassification"]:
+#     for obj in response["data"]["Get"]["WorkfrontClassification"]:
+#         print(obj)
+# else:
+#     print("No objects found in the WorkfrontClassification class.")
 
 
 
@@ -100,55 +100,55 @@ schema = {
 
 
 
-# # Add data to Weaviate
-# for activity in activity_descriptions:
-#     # Generate embedding for the description using AzureOpenAIEmbedding
-#     embedding = embedding_model.get_text_embedding(activity["Description"])
+# Add data to Weaviate
+for activity in activity_descriptions:
+    # Generate embedding for the description using AzureOpenAIEmbedding
+    embedding = embedding_model.get_text_embedding(activity["Description"])
     
-#     # Check if the object already exists by activity type
-#     response = client.query.get(
-#         class_name="WorkfrontClassification",
-#         properties=["_additional { id }"]
-#     ).with_where({
-#         "path": ["activity_type"],
-#         "operator": "Equal",
-#         "valueText": activity["Activity Name"]
-#     }).do()
+    # Check if the object already exists by activity type
+    response = client.query.get(
+        class_name="WorkfrontClassification",
+        properties=["_additional { id }"]
+    ).with_where({
+        "path": ["activity_type"],
+        "operator": "Equal",
+        "valueText": activity["Activity Name"]
+    }).do()
 
-#     if response["data"]["Get"]["WorkfrontClassification"]:
-#         # Update existing object
-#         object_id = response["data"]["Get"]["WorkfrontClassification"][0]["_additional"]["id"]
-#         client.data_object.update(
-#             data_object={
-#                 "description": activity["Description"],
-#                 "activity_type": activity["Activity Name"],
-#                 "adobe_analytics": activity["Adobe Analytics"],
-#                 "customer_journey_analytics": activity["Customer Journey Analytics"],
-#                 "target": activity["Target"],
-#                 "experience_platform_core": activity["Experience Platform Core"],
-#                 "audience_manager": activity["Audience Manager"]
-#             },
-#             class_name="WorkfrontClassification",
-#             uuid=object_id,
-#             vector=embedding
-#         )
-#         print(f"Updated object with ID {object_id}.")
-#     else:
-#         # Create new object
-#         client.data_object.create(
-#             data_object={
-#                 "description": activity["Description"],
-#                 "activity_type": activity["Activity Name"],
-#                 "adobe_analytics": activity["Adobe Analytics"],
-#                 "customer_journey_analytics": activity["Customer Journey Analytics"],
-#                 "target": activity["Target"],
-#                 "experience_platform_core": activity["Experience Platform Core"],
-#                 "audience_manager": activity["Audience Manager"]
-#             },
-#             class_name="WorkfrontClassification",
-#             vector=embedding
-#         )
-#         print(f"Created new object for activity type {activity['Activity Name']}.")
+    if response["data"]["Get"]["WorkfrontClassification"]:
+        # Update existing object
+        object_id = response["data"]["Get"]["WorkfrontClassification"][0]["_additional"]["id"]
+        client.data_object.update(
+            data_object={
+                "description": activity["Description"],
+                "activity_type": activity["Activity Name"],
+                "adobe_analytics": activity["Adobe Analytics"],
+                "customer_journey_analytics": activity["Customer Journey Analytics"],
+                "target": activity["Target"],
+                "experience_platform_core": activity["Experience Platform Core"],
+                "audience_manager": activity["Audience Manager"]
+            },
+            class_name="WorkfrontClassification",
+            uuid=object_id,
+            vector=embedding
+        )
+        print(f"Updated object with ID {object_id}.")
+    else:
+        # Create new object
+        client.data_object.create(
+            data_object={
+                "description": activity["Description"],
+                "activity_type": activity["Activity Name"],
+                "adobe_analytics": activity["Adobe Analytics"],
+                "customer_journey_analytics": activity["Customer Journey Analytics"],
+                "target": activity["Target"],
+                "experience_platform_core": activity["Experience Platform Core"],
+                "audience_manager": activity["Audience Manager"]
+            },
+            class_name="WorkfrontClassification",
+            vector=embedding
+        )
+        print(f"Created new object for activity type {activity['Activity Name']}.")
 
 
 

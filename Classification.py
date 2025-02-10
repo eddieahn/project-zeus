@@ -10,6 +10,7 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 import ssl
 import datetime
+from streamlit_feedback import streamlit_feedback
 
 # Set environment variables or use default values
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or "de94456faa5b415b943034ed720811ed"
@@ -23,7 +24,7 @@ WEAVIATE_CLIENT_URL = os.environ.get("WEAVIATE_CLIENT_URL") or "http://weaviate.
 
 # Initialize Weaviate client
 
-client = weaviate.Client("https://ryv8q0mqayz6uxdzizveq.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('jf6mRJoSfNIQmGYTSvNmoC09i8w3q0mc1pID'))       
+client = weaviate.Client("https://njwzpirmqjkq9gx9myrlug.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('upw9FB6sgQiL7sq1CuF0UanFKmo9Nslw8qrC'))       
 
 # Initialize embedding model
 llm = AzureOpenAI(
@@ -160,7 +161,8 @@ def classify_customer_ask_with_rag(customer_ask, solution):
         "Adobe Analytics": 
         """
         1. Do not classify requests involving integrations as Solution Review or Environment Review.
-        2. Requests involving a holistic review of their overall implementation is a Solution Review.
+        2. Focus on the specific intent of the customer's query, prioritizing what is explicitly asked rather than implied.
+        3. Avoid assigning broad categories like Solution Review or Environment Review unless the customer explicitly requests a review or evaluation of their implementation.
         """,
 
         "Target":
@@ -272,7 +274,8 @@ if user_input := st.chat_input("Enter your customer ask:"):
     st.session_state.user_input = user_input
     with st.chat_message("user"):
         st.markdown(user_input)
-
+        st.session_state.feedback=False
+        st.rerun()
 
 # Solution selection
 
@@ -318,11 +321,11 @@ def create_GSheetsConnection():
     conn = st.connection("gsheets", type=GSheetsConnection)
     return conn
 
-def store_feedback():
-    print(st.session_state.feedback_chosen)
+def store_feedback(feedback):
+
     conn=create_GSheetsConnection()
     df = conn.read(ttl=1)
-    record={'solution':st.session_state.last_solution,'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':st.session_state.feedback_chosen,'timestamp':datetime.datetime.now()}
+    record={'solution':st.session_state.last_solution,'user_input':st.session_state.last_input, 'response':st.session_state.result, 'feedback':feedback['score'],'comments':feedback['text'], 'timestamp':datetime.datetime.now()}
     new_row=pd.Series(record)
     df=append_row(df,new_row)
     conn.update(data=df)
@@ -341,14 +344,18 @@ def store_feedback():
 
 
 if st.session_state.feedback:
-    st.feedback("thumbs", key="feedback_chosen", on_change=store_feedback)
+    feedback=streamlit_feedback(feedback_type="thumbs", optional_text_label="Please provide feedback!", review_on_positive=False, key=f"feedback_{st.session_state.feedback_key}", on_submit=store_feedback)
+    st.session_state.feedback_chosen=feedback
+    #st.feedback("thumbs", key="feedback_chosen", on_change=store_feedback)
     # st.session_state.feedback_chosen=st.feedback("thumbs")
     # store_feedback()
 
-
+if 'feedback_key' not in st.session_state:
+    st.session_state.feedback_key=0
 
 #Checking to see if the user has inputted a customer request. If so, then we will check if the input is relevant
 if st.session_state.user_input and st.session_state.step==1:
+    st.session_state.feedback_key+=1
     if not st.session_state.precheck_result:
         precheck_result=precheck(st.session_state.user_input)
         st.session_state.precheck_result = precheck_result

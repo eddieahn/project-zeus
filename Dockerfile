@@ -1,21 +1,20 @@
 
-FROM python:3.8-slim-buster
+FROM python:3.13-slim-buster
 
 WORKDIR /app
 
-ADD ./ingestion /app/ingestion
-ADD ./requirements.txt /app
+COPY ./Classification.py /app
+COPY ./app.py /app
 
-RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN pip install jupyter
 
-ENV AZURE_OPENAI_API_KEY=
+ENV AZURE_OPENAI_API_KEY=de94456faa5b415b943034ed720811e
 ENV AZURE_OPENAI_ENDPOINT=https://compasaoaiuks.openai.azure.com/
 ENV AZURE_OPENAI_API_VERSION=2024-03-01-preview
 
-# Expose the port where gunicorn and jupyter will run
-EXPOSE 80 2323
+# Expose the port where streamlit will run
+EXPOSE 8501
 
-# Run the gunicorn server and the jupyter notebook
-CMD gunicorn -b 0.0.0.0:80 ingestion:app & jupyter notebook --ip='*' --port=2323 --no-browser --allow-root
+# Run streamlit
+ENTRYPOINT [ "streamlit", "run" ]
+CMD ["app.py"]
