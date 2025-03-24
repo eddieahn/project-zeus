@@ -13,19 +13,19 @@ import datetime
 from streamlit_feedback import streamlit_feedback
 
 # Set environment variables or use default values
-AZURE_OPENAI_KEY = st.secrets["AZURE_OPENAI_KEY"]
-AZURE_OPENAI_ENDPOINT = st.secrets["AZURE_OPENAI_ENDPOINT"]
-AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL") or "gpt-4"
-AZURE_OPENAI_MODEL_NAME = os.environ.get("AZURE_OPENAI_MODEL_NAME") or "gpt4"
-AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-03-01-preview"
-AZURE_OPENAI_EMBEDDING_NAME = os.environ.get("AZURE_OPENAI_EMBEDDING_NAME") or "textembedding"
-AZURE_OPENAI_EMBEDDING_MODEL = os.environ.get("AZURE_OPENAI_EMBEDDING_MODEL") or "text-embedding-ada-002"
+AZURE_OPENAI_KEY = ""
+AZURE_OPENAI_ENDPOINT = "https://zeus-model-eastus2.openai.azure.com/"
+AZURE_OPENAI_MODEL = "gpt-4o-mini"
+AZURE_OPENAI_MODEL_NAME = "gpt-4o-mini"
+AZURE_OPENAI_VERSION = "2024-08-01-preview"
+AZURE_OPENAI_EMBEDDING_NAME = "textembedding"
+AZURE_OPENAI_EMBEDDING_MODEL = "text-embedding-3-large"
 WEAVIATE_CLIENT_URL = os.environ.get("WEAVIATE_CLIENT_URL") or "http://weaviate.compas-weaviate.svc.cluster.local:80"
 
 
 # Initialize Weaviate client
 
-client = weaviate.Client("https://njwzpirmqjkq9gx9myrlug.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('upw9FB6sgQiL7sq1CuF0UanFKmo9Nslw8qrC'))       
+client = weaviate.Client("https://lorrdtftleztqq0pon3jw.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('n44LQVgeyigroQ57sijG0scN8y6MzdvZ1LaU'))       
 
 # Initialize embedding model
 llm = AzureOpenAI(
@@ -118,7 +118,7 @@ def classify_customer_ask_with_rag(customer_ask, solution):
         properties=["description", "activity_type", solution_property]
     ).with_near_vector({
         "vector": query_embedding,
-        "certainty": 0.7
+        "certainty": 0.5
     }).with_additional(["certainty"]).with_limit(5).do()
 
     top_matches = response.get("data", {}).get("Get", {}).get("WorkfrontClassification", [])
@@ -177,14 +177,17 @@ def classify_customer_ask_with_rag(customer_ask, solution):
 
     guardrails=guardrail_solutions.get(solution)
     llm_prompt = f"""
-    You are a classification assistant. When classifying customer requests, ensure the following rules are adhered to:
+    You are a classification assistant. When classifying customer requests, go through the following steps
+    1. Ensure the following guardrails are adhered to:
     {guardrails}
-    Customer Query: "{customer_ask}"
+
+    2. Review the customer request below and classify it based on the following options, while remembering the guardrails above:
+    Customer Query: "{customer_ask}
 
     Options:
     {formatted_context}
 
-    Respond only with the most relevant activity type and the reasoning in the following format without specifying any rules or restating the customer request:
+    Respond only with the top three most relevant activity types and the reasoning in the following format without specifying any rules or restating the customer request:
     Activity Type: [activity type]
 
     [reasoning]

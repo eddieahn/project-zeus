@@ -8,13 +8,13 @@ import pandas as pd
 import weaviate.connect
 
 
-AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or "de94456faa5b415b943034ed720811ed"
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT") or "https://compasaoaiuks.openai.azure.com/"
-AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL") or "gpt-4"
-AZURE_OPENAI_MODEL_NAME = os.environ.get("AZURE_OPENAI_MODEL_NAME") or "gpt4"
-AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-03-01-preview"
+AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_API_KEY") or ""
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT") or "https://zeus-model-eastus2.openai.azure.com/"
+AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL") or "gpt-4o-mini"
+AZURE_OPENAI_MODEL_NAME = os.environ.get("AZURE_OPENAI_MODEL_NAME") or "gpt-4o-mini"
+AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-08-01-preview"
 AZURE_OPENAI_EMBEDDING_NAME = os.environ.get("AZURE_OPENAI_EMBEDDING_NAME") or "textembedding"
-AZURE_OPENAI_EMBEDDING_MODEL = os.environ.get("AZURE_OPENAI_EMBEDDING_MODEL") or "text-embedding-ada-002"
+AZURE_OPENAI_EMBEDDING_MODEL = os.environ.get("AZURE_OPENAI_EMBEDDING_MODEL") or "text-embedding-3-large"
 WEAVIATE_CLIENT_URL = os.environ.get("WEAVIATE_CLIENT_URL") or "http://weaviate.compas-weaviate.svc.cluster.local:80"
 
 
@@ -26,9 +26,12 @@ embedding_model = AzureOpenAIEmbedding(
     api_version=AZURE_OPENAI_VERSION,
 )
 
+print(AZURE_OPENAI_KEY)
+print(AZURE_OPENAI_ENDPOINT)
+
 #client = weaviate.Client("http://weaviate.compas-weaviate.svc.cluster.local:80")
 
-client = weaviate.Client("https://njwzpirmqjkq9gx9myrlug.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('upw9FB6sgQiL7sq1CuF0UanFKmo9Nslw8qrC'))                                  
+client = weaviate.Client("https://lorrdtftleztqq0pon3jw.c0.us-east1.gcp.weaviate.cloud",auth_client_secret= weaviate.AuthApiKey('n44LQVgeyigroQ57sijG0scN8y6MzdvZ1LaU'))                                  
 
 print(client.is_ready())
 
@@ -66,13 +69,17 @@ print(client.is_ready())
 
 
 
-
+columns_to_read = [
+    "Activity Name", "Description", "General Guardrails", "Adobe Analytics",
+    "Customer Journey Analytics", "Target", "Experience Platform Core", "Audience Manager"
+]
 
 csv_file_path="Workfront Classification.csv"
-df=pd.read_csv(csv_file_path)
-df.fillna("", inplace=True)
+df=pd.read_csv(csv_file_path, usecols=columns_to_read)
+df.fillna(" ", inplace=True)
+df = df[df["Activity Name"].str.strip() != ""]
 activity_descriptions = df.to_dict(orient="records")
-
+print(activity_descriptions)
 
 
 schema = {
